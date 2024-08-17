@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!--
+    Copyright (C) 2024 wangwm.com | GitHub: https://github.com/wangwmg
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机抽签系统</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 15px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 95%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+        }
+        textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            min-height: 120px;
+            max-height: 400px;
+            overflow-y: auto;
+            resize: vertical;
+            font-size: 14px;
+            font-family: Consolas, sans-serif;
+        }
+        textarea::placeholder {
+            color: #aaa;
+            opacity: 1; /* 使占位符完全不透明 */
+            white-space: pre-wrap; /* 允许多行显示 */
+            font-family: Consolas, sans-serif;
+        }
+        .input-container input, .info {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            max-height: 160px;
+            overflow-y: auto;
+            resize: none;
+            font-size: 14px;
+            font-family: Consolas, sans-serif;
+        }
+        .result {
+            display: none; /* 初始时隐藏结果框 */
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            min-height: 100px;
+            max-height: 250px;
+            overflow-y: auto;
+            resize: vertical; /* 允许垂直方向调整大小 */
+            font-size: 14px;
+            font-family: Consolas, sans-serif;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .input-container input {
+            flex: 1;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .license {
+            text-align: center;
+            color: #E5E5E5;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .license a {
+            color: #E5E5E5;
+            text-decoration: none;
+        }
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>随机抽签系统</h1>
+        <div id="info" class="info"></div>
+        <textarea id="dataInput" rows="10" placeholder="请输入格式化数据，格式为：name times，例如：&#10;张三 3&#10;李四 3&#10;王五 5"></textarea>
+        <div class="input-container">
+            <input type="number" id="numKeys" placeholder="生成随机结果的数量" min="1">
+            <input type="number" id="maxValue" placeholder="times小于等于此值会被抽到">
+        </div>
+        <button onclick="generateRandomResults()">生成随机结果</button>
+        <div id="result" class="result"></div>
+    </div>
+    <div class="footer">
+        <div class="license">Copyright (C) 2024 <a href="https://github.com/wangwmg" target="_blank">https://github.com/wangwmg</a></div>
+        <div class="license">LICENSE: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPLv3</a></div>
+    </div>
+
+    <script>
+        const openTime = new Date();
+        let clickCount = 0;
+
+        function displayOpenTimeAndClickCount() {
+            const infoDiv = document.getElementById('info');
+            const openTimeString = formatDateTime(openTime);
+            infoDiv.innerText = `网站打开时间：${openTimeString}\n生成随机结果按钮被点击的次数：${clickCount}次`;
+        }
+
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            const second = String(date.getSeconds()).padStart(2, '0');
+            const millisecond = String(date.getMilliseconds()).padStart(3, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second}:${millisecond}`;
+        }
+
+        function seededRandom(seed) {
+            var x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        function generateRandomResults() {
+            const dataInput = document.getElementById('dataInput').value.trim();
+            const numKeys = parseInt(document.getElementById('numKeys').value);
+            const maxValue = parseInt(document.getElementById('maxValue').value);
+
+            if (!dataInput || isNaN(numKeys) || isNaN(maxValue)) {
+                alert('请确保所有输入框都已填写正确的值');
+                return;
+            }
+
+            const data = dataInput.split('\n').map(line => {
+                const [key, value] = line.trim().split(/\s+/);
+                return { key, value: parseInt(value) };
+            }).filter(item => !isNaN(item.value) && item.value <= maxValue);
+
+            if (data.length < numKeys) {
+                alert('有效数据不足以生成指定数量的结果');
+                return;
+            }
+
+            const clickTime = new Date();
+            const seed = clickTime.getTime();
+            Math.seed = seed;
+
+            const selectedKeys = [];
+            while (selectedKeys.length < numKeys) {
+                const randomIndex = Math.floor(seededRandom(seed + selectedKeys.length) * data.length);
+                const selected = data.splice(randomIndex, 1)[0];
+                selectedKeys.push(selected);
+            }
+
+            const inputOrder = dataInput.split('\n').map(line => line.trim().split(/\s+/)[0]);
+            selectedKeys.sort((a, b) => inputOrder.indexOf(a.key) - inputOrder.indexOf(b.key));
+
+            const resultText = selectedKeys.map(item => `${item.key}，原次数：${item.value}`).join('\n');
+            const clickTimeString = formatDateTime(clickTime);
+
+            clickCount++;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `第${clickCount}次抽签结果：\n${resultText}\n随机种子：${seed}\n点击时间：${clickTimeString}\n\n` + resultDiv.innerHTML;
+
+            // 如果有内容则显示结果框
+            resultDiv.style.display = resultText ? 'block' : 'none';
+
+            displayOpenTimeAndClickCount();
+        }
+
+        window.onload = displayOpenTimeAndClickCount;
+    </script>
+</body>
+</html>
