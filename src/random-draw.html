@@ -19,7 +19,7 @@
     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机抽签系统</title>
+    <title>随机抽签 | Random Draw</title>
     <style>
         body {
             margin: 0;
@@ -92,7 +92,6 @@
             font-size: 14px;
             font-family: Consolas, sans-serif;
         }
-
         .input-container {
             display: flex;
             gap: 10px;
@@ -135,14 +134,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>随机抽签系统</h1>
+        <h1 id="title">Random Draw System</h1>
         <div id="info" class="info"></div>
-        <textarea id="dataInput" rows="10" placeholder="请输入格式化数据，格式为：name times，例如：&#10;张三 3&#10;李四 3&#10;王五 5"></textarea>
+        <textarea id="dataInput" rows="10" placeholder="Please input formatted data, format: name times, e.g.&#10;John 3&#10;Jane 3&#10;Doe 5"></textarea>
         <div class="input-container">
-            <input type="number" id="numKeys" placeholder="生成随机结果的数量" min="1">
-            <input type="number" id="maxValue" placeholder="times小于等于此值会被抽到">
+            <input type="number" id="numKeys" placeholder="Number of random results to generate" min="1">
+            <input type="number" id="maxValue" placeholder="Maximum times value for selection">
         </div>
-        <button onclick="generateRandomResults()">生成随机结果</button>
+        <button id="generateBtn" onclick="generateRandomResults()">Generate Random Results</button>
         <div id="result" class="result"></div>
     </div>
     <div class="footer">
@@ -154,10 +153,89 @@
         const openTime = new Date();
         let clickCount = 0;
 
+        const translations = {
+            "en": {
+                title: "Random Draw System",
+                dataPlaceholder: "Please input formatted data, format: name times, e.g.\nJaneDoe 3\nJohnDoe 3\nRichardRoe 5",
+                numKeysPlaceholder: "Number of random results to generate",
+                maxValuePlaceholder: "Maximum times value for selection",
+                generateBtn: "Generate Random Results",
+                alertIncomplete: "Please ensure all fields are filled in correctly",
+                alertNotEnoughData: "Not enough valid data to generate the specified number of results",
+                openTimeText: "Website opened at: ",
+                clickCountText: "Clicks on Generate button: ",
+                resultTextPrefix: "Results of the ",
+                resultTextSuffix: " draw",
+                originalTimes: "Original times: ",
+                randomSeed: "Random seed: ",
+                clickTimeText: "Click time: "
+            },
+            "zh-CN": {
+                title: "随机抽签系统",
+                dataPlaceholder: "请输入格式化数据，格式为：姓名 次数，例如：\n张三 3\n李四 3\n王五 5",
+                numKeysPlaceholder: "生成随机结果的数量",
+                maxValuePlaceholder: "times小于等于此值会被抽到",
+                generateBtn: "生成随机结果",
+                alertIncomplete: "请确保所有输入框都已填写正确的值",
+                alertNotEnoughData: "有效数据不足以生成指定数量的结果",
+                openTimeText: "网站打开时间：",
+                clickCountText: "生成按钮点击的次数：",
+                resultTextPrefix: "第",
+                resultTextSuffix: "次抽签结果",
+                originalTimes: "原次数：",
+                randomSeed: "随机种子：",
+                clickTimeText: "点击时间："
+            },
+            "zh-TW": {
+                title: "隨機抽籤系統",
+                dataPlaceholder: "請輸入格式化資料，格式為：姓名 次數，例如：\n張三 3\n李四 3\n王五 5",
+                numKeysPlaceholder: "生成隨機結果的數量",
+                maxValuePlaceholder: "times小於等於此值會被抽到",
+                generateBtn: "生成隨機結果",
+                alertIncomplete: "請確保所有輸入框都已填寫正確的值",
+                alertNotEnoughData: "有效資料不足以生成指定數量的結果",
+                openTimeText: "網站打開時間：",
+                clickCountText: "生成按鈕點擊的次數：",
+                resultTextPrefix: "第",
+                resultTextSuffix: "次抽籤結果",
+                originalTimes: "原次數：",
+                randomSeed: "隨機種子：",
+                clickTimeText: "點擊時間："
+            }
+        };
+
+        function getBrowserLanguage() {
+            const lang = navigator.language || navigator.userLanguage;
+            if (lang.startsWith('zh-TW') || lang.startsWith('zh-HK')) {
+                return 'zh-TW';
+            } else if (lang.startsWith('zh')) {
+                return 'zh-CN';
+            } else {
+                return 'en';
+            }
+        }
+
+        function applyTranslations(language) {
+            const trans = translations[language];
+            document.getElementById('title').innerText = trans.title;
+            document.getElementById('dataInput').placeholder = trans.dataPlaceholder;
+            document.getElementById('numKeys').placeholder = trans.numKeysPlaceholder;
+            document.getElementById('maxValue').placeholder = trans.maxValuePlaceholder;
+            document.getElementById('generateBtn').innerText = trans.generateBtn;
+            displayOpenTimeAndClickCount();
+        }
+
+        window.onload = function () {
+            const language = getBrowserLanguage();
+            applyTranslations(language);
+        };
+
         function displayOpenTimeAndClickCount() {
+            const language = getBrowserLanguage();
+            const trans = translations[language];
             const infoDiv = document.getElementById('info');
             const openTimeString = formatDateTime(openTime);
-            infoDiv.innerText = `网站打开时间：${openTimeString}\n生成随机结果按钮被点击的次数：${clickCount}次`;
+            infoDiv.innerText = `${trans.openTimeText}${openTimeString}\n${trans.clickCountText}${clickCount}`;
         }
 
         function formatDateTime(date) {
@@ -180,9 +258,11 @@
             const dataInput = document.getElementById('dataInput').value.trim();
             const numKeys = parseInt(document.getElementById('numKeys').value);
             const maxValue = parseInt(document.getElementById('maxValue').value);
+            const language = getBrowserLanguage();
+            const trans = translations[language];
 
             if (!dataInput || isNaN(numKeys) || isNaN(maxValue)) {
-                alert('请确保所有输入框都已填写正确的值');
+                alert(trans.alertIncomplete);
                 return;
             }
 
@@ -192,7 +272,7 @@
             }).filter(item => !isNaN(item.value) && item.value <= maxValue);
 
             if (data.length < numKeys) {
-                alert('有效数据不足以生成指定数量的结果');
+                alert(trans.alertNotEnoughData);
                 return;
             }
 
@@ -210,20 +290,18 @@
             const inputOrder = dataInput.split('\n').map(line => line.trim().split(/\s+/)[0]);
             selectedKeys.sort((a, b) => inputOrder.indexOf(a.key) - inputOrder.indexOf(b.key));
 
-            const resultText = selectedKeys.map(item => `${item.key}，原次数：${item.value}`).join('\n');
+            const resultText = selectedKeys.map(item => `${item.key}，${trans.originalTimes}${item.value}`).join('\n');
             const clickTimeString = formatDateTime(clickTime);
 
             clickCount++;
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `第${clickCount}次抽签结果：\n${resultText}\n随机种子：${seed}\n点击时间：${clickTimeString}\n\n` + resultDiv.innerHTML;
+            resultDiv.innerHTML = `${trans.resultTextPrefix}${clickCount}${trans.resultTextSuffix}:\n${resultText}\n${trans.randomSeed}${seed}\n${trans.clickTimeText}${clickTimeString}\n\n` + resultDiv.innerHTML;
 
             // 如果有内容则显示结果框
             resultDiv.style.display = resultText ? 'block' : 'none';
 
             displayOpenTimeAndClickCount();
         }
-
-        window.onload = displayOpenTimeAndClickCount;
     </script>
 </body>
 </html>
